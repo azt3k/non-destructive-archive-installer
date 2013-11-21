@@ -35,7 +35,7 @@ This really only does something very simple which is to manually handle the deco
     "require": {
         "php"                                       : ">=5.4.0",
         "composer/installers"                       : ">=1.0",
-        "azt3k/non-destructive-archive-installer"   : "dev-master,
+        "azt3k/non-destructive-archive-installer"   : "dev-master",
         "drupal/drupal"                             : "7.24"
     },    
     "extra": {
@@ -75,7 +75,7 @@ Or maybe:
     "require": {
         "php"                                       : ">=5.4.0",
         "composer/installers"                       : ">=1.0",
-        "azt3k/non-destructive-archive-installer"   : "dev-master,
+        "azt3k/non-destructive-archive-installer"   : "dev-master",
         "drupal/drupal"                             : "7.24"
     }   
 }
