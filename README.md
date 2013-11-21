@@ -8,7 +8,7 @@ What's in this thing Anyway?
 
 
 
-This really only does something very simple which is to manually handle the decompression of manually defined packages so as to not disrupt nested package installs.  This is basically a straight rip of mouf/archive-installer [http://mouf-php.com]
+This really only does something very simple which is to manually handle the decompression of manually defined packages so as to not disrupt nested package installs.  This is basically a straight rip of mouf/archive-installer (http://mouf-php.com) made to be slightly more flexible in terms of configuration.
 
 
 
@@ -28,7 +28,10 @@ This really only does something very simple which is to manually handle the deco
                 "dist": {
                     "url": "http://ftp.drupal.org/files/projects/drupal-7.24.zip",
                     "type": "zip"
-                }
+                },
+                "require": {
+                    "azt3k/non-destructive-archive-installer" : "*"
+                }                
             }
         }
     ],
@@ -64,7 +67,10 @@ Or maybe:
                 "dist": {
                     "url": "http://ftp.drupal.org/files/projects/drupal-7.24.zip",
                     "type": "zip"
-                }
+                },
+                "require": {
+                    "azt3k/non-destructive-archive-installer" : "*"
+                }                
             },
             "extra": {
                 "target-dir": "public",
