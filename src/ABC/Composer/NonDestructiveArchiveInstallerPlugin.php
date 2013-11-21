@@ -10,7 +10,7 @@ class NonDestructiveArchiveInstallerPlugin implements PluginInterface
 {
     public function activate(Composer $composer, IOInterface $io)
     {
-        $installer = new NonDestructiveArchiveInstallerPlugin($io, $composer);
+        $installer = new NonDestructiveArchiveInstallerInstaller($io, $composer);
         $composer->getInstallationManager()->addInstaller($installer);
     }
 }
