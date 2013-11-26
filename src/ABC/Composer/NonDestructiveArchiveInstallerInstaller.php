@@ -90,7 +90,7 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
                 foreach ($c_extra['installer-paths'] as $path => $pkgs) {
                     foreach ($pkgs as $pkg) {
                         if ($pkg == $package->getName()) {
-                            $targetDir = './' . trim($targetDir, '/') . '/';
+                            $targetDir = realpath('./' . trim($path, '/')) . '/';
                         }
                     }
                 }
