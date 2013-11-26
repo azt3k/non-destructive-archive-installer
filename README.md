@@ -8,7 +8,7 @@ What's in this thing Anyway?
 
 
 
-This really only does something very simple which is to manually handle the decompression of manually defined packages so as to not disrupt nested package installs.  This is basically a straight rip of mouf/archive-installer (http://mouf-php.com) made to be slightly more flexible in terms of configuration.
+This really only does something very simple which is to manually handle the decompression of manually defined packages so as to not disrupt nested package installs.  This is basically a straight rip of mouf/archive-installer (http://mouf-php.com), the only difference is that it's made to be slightly more flexible in terms of configuration.
 
 
 
