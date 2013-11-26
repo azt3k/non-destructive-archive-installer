@@ -68,8 +68,8 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
             $extra = $package->getExtra();
 
         die(
-            'composer package extra' . $this->composer->getPackage()->getExtra() .
-            'passed package extra' . $package->getExtra()
+            'composer package extra' . print_r($this->composer->getPackage()->getExtra(), 1) .
+            'passed package extra' . print_r($package->getExtra(), 1)
         );
 
         $url = $package->getDistUrl();
