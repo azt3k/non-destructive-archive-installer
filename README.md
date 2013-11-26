@@ -31,7 +31,10 @@ This really only does something very simple which is to manually handle the deco
                 },
                 "require": {
                     "azt3k/non-destructive-archive-installer" : "*"
-                }                
+                },
+                "extra": {
+                    "omit-first-directory": "true"
+                }   
             }
         }
     ],
@@ -52,7 +55,7 @@ This really only does something very simple which is to manually handle the deco
 
 ````
 
-Or maybe:
+Or:
 
 ````json
 {

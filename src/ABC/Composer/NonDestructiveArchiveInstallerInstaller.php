@@ -80,7 +80,7 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
                 : false;
 
             $targetDir = isset($p_extra['target-dir'])
-                ? $p_extra['target-dir']
+                ? realpath('./' . trim($p_extra['target-dir'], '/')) . '/'
                 : $this->getInstallPath($package);
 
             // handle overrides
