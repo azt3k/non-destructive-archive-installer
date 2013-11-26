@@ -79,8 +79,6 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
 
             $targetDir = $this->getInstallPath($package);
 
-            $this->io->write("    - Downloading <info>" . $fileName . "</info> from <info>".$url."</info>");
-
             // First, try to detect if the archive has been downloaded
             // If yes, do nothing.
             // If no, let's download the package.
