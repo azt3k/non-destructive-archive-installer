@@ -64,13 +64,9 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
      */
     private function downloadAndExtractFile(PackageInterface $package) {
 
-        if (!$extra = $this->composer->getPackage()->getExtra()) 
-            $extra = $package->getExtra();
-
-        die(
-            'composer package extra' . print_r($this->composer->getPackage()->getExtra(), 1) .
-            'passed package extra' . print_r($package->getExtra(), 1)
-        );
+        // get extra data
+        $c_extra = $this->composer->getPackage()->getExtra();
+        $p_extra = $package->getExtra();
 
         $url = $package->getDistUrl();
 
@@ -79,18 +75,26 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
             // handle package level config
             // ---------------------------
              
-            $omitFirstDirectory = (isset($extra['omit-first-directory']))
-                ? strtolower($extra['omit-first-directory']) == "true"
+            $omitFirstDirectory = (isset($p_extra['omit-first-directory']))
+                ? strtolower($p_extra['omit-first-directory']) == "true"
                 : false;
 
-            $targetDir = isset($extra['target-dir'])
-                ? $extra['target-dir']
+            $targetDir = isset($p_extra['target-dir'])
+                ? $p_extra['target-dir']
                 : $this->getInstallPath($package);
 
             // handle overrides
             // ---------------------------
 
-
+            if (isset($c_extra['installer-paths'])) {
+                foreach ($c_extra['installer-paths'] as $path => $pkgs) {
+                    foreach ($pkgs as $pkg) {
+                        if ($pkg == $package->getName()) {
+                            $targetDir = './' . trim($targetDir, '/') . '/';
+                        }
+                    }
+                }
+            }
 
             // First, try to detect if the archive has been downloaded
             // If yes, do nothing.
