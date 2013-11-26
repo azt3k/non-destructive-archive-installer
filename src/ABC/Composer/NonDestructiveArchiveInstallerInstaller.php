@@ -67,17 +67,30 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
         if (!$extra = $this->composer->getPackage()->getExtra()) 
             $extra = $package->getExtra();
 
-        $url = $package->getDistUrl(); // not sure which package this is referencing the current one or the actual package
+        die(
+            'composer package extra' . $this->composer->getPackage()->getExtra() .
+            'passed package extra' . $package->getExtra()
+        );
+
+        $url = $package->getDistUrl();
 
         if ($url) {
 
-            if (isset($extra['omit-first-directory'])) {
-                $omitFirstDirectory = strtolower($extra['omit-first-directory']) == "true";
-            } else {
-                $omitFirstDirectory = false;
-            }
+            // handle package level config
+            // ---------------------------
+             
+            $omitFirstDirectory = (isset($extra['omit-first-directory']))
+                ? strtolower($extra['omit-first-directory']) == "true"
+                : false;
 
-            $targetDir = $this->getInstallPath($package);
+            $targetDir = isset($extra['target-dir'])
+                ? $extra['target-dir']
+                : $this->getInstallPath($package);
+
+            // handle overrides
+            // ---------------------------
+
+
 
             // First, try to detect if the archive has been downloaded
             // If yes, do nothing.
