@@ -15,8 +15,8 @@ use Composer\Installer\LibraryInstaller;
  * This class is in charge of handling the installation of an external package
  * that will be downloaded.
  *
- *
  * @author David Négrier
+ * @author Aaron Latham-Ilari
  */
 class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
 
@@ -29,8 +29,7 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
      * @param Composer    $composer
      * @param string      $type
      */
-    public function __construct(IOInterface $io, Composer $composer, $type = 'library')
-    {
+    public function __construct(IOInterface $io, Composer $composer, $type = 'library') {
         parent::__construct($io, $composer, $type);
         $this->rfs = new RemoteFilesystem($io);
     }
@@ -38,8 +37,7 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
     /**
      * {@inheritDoc}
      */
-    public function update(InstalledRepositoryInterface $repo, PackageInterface $initial, PackageInterface $package)
-    {
+    public function update(InstalledRepositoryInterface $repo, PackageInterface $initial, PackageInterface $package) {
         parent::update($repo, $initial, $package);
 
         $this->downloadAndExtractFile($package);
@@ -48,8 +46,7 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
     /**
      * {@inheritDoc}
      */
-    public function install(InstalledRepositoryInterface $repo, PackageInterface $package)
-    {
+    public function install(InstalledRepositoryInterface $repo, PackageInterface $package) {
         parent::install($repo, $package);
 
         $this->downloadAndExtractFile($package);
@@ -74,7 +71,7 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
 
             // handle package level config
             // ---------------------------
-             
+
             $omitFirstDirectory = (isset($p_extra['omit-first-directory']))
                 ? strtolower($p_extra['omit-first-directory']) == "true"
                 : false;
@@ -96,30 +93,25 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
                 }
             }
 
-            // First, try to detect if the archive has been downloaded
-            // If yes, do nothing.
-            // If no, let's download the package.
-            if (self::getLastDownloadedFileUrl($package) == $url) {
-                return;
-            }
+            // Has archive has been downloaded
+            if (self::getLastDownloadedFileUrl($package) == $url) return;
 
-            // Download (using code from FileDownloader)
-            $fileName = pathinfo(parse_url($url, PHP_URL_PATH), PATHINFO_BASENAME);
+            // SSL Check
+            if (!extension_loaded('openssl') && 0 === strpos($url, 'https:'))
+                throw new \RuntimeException('You must enable the openssl extension to download files via https');
+
+            // Extract some data about our download
+            $fileName  = pathinfo(parse_url($url, PHP_URL_PATH), PATHINFO_BASENAME);
             $extension = strtolower(pathinfo(parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION));
 
-            if (!extension_loaded('openssl') && 0 === strpos($url, 'https:')) {
-                throw new \RuntimeException('You must enable the openssl extension to download files via https');
-            }
-
-
+            // Download
             $this->io->write("    - Downloading <info>" . $fileName . "</info> from <info>".$url."</info>");
-
             $this->rfs->copy(parse_url($url, PHP_URL_HOST), $url, $fileName);
 
-            if (!file_exists($fileName)) {
-                throw new \UnexpectedValueException($url.' could not be saved to '.$fileName.', make sure the'
+            // Check
+            if (!file_exists($fileName))
+                throw new \UnexpectedValueException($url.' could not be saved to ' . $fileName . ', make sure the'
                 .' directory is writable and you have internet connectivity');
-            }
 
             // Extract using ZIP downloader
             if ($extension == 'zip') {
@@ -141,16 +133,14 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
     /**
      * {@inheritDoc}
      */
-    public function uninstall(InstalledRepositoryInterface $repo, PackageInterface $package)
-    {
+    public function uninstall(InstalledRepositoryInterface $repo, PackageInterface $package) {
         parent::uninstall($repo, $package);
     }
 
     /**
      * {@inheritDoc}
      */
-    public function supports($packageType)
-    {
+    public function supports($packageType) {
         return 'non-destructive-archive-installer' === $packageType;
     }
 
@@ -187,7 +177,7 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
      * @return string
      */
     public static function getPackageDir(PackageInterface $package) {
-        return __DIR__."/../../../../../".$package->getName()."/";
+        return __DIR__."/../../../../../" . $package->getName() . "/";
     }
 
     /**
@@ -198,24 +188,21 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
      * @throws \RuntimeException
      * @throws \UnexpectedValueException
      */
-    protected function extractZip($file, $path, $omitFirstDirectory)
-    {
-        if (!class_exists('ZipArchive')) {
+    protected function extractZip($file, $path, $omitFirstDirectory) {
+
+        if (!class_exists('ZipArchive'))
             throw new \RuntimeException('You need the zip extension enabled to use the ZipDownloader');
-        }
 
         $zipArchive = new \ZipArchive();
 
-        if (true !== ($retval = $zipArchive->open($file))) {
+        if (true !== $zipArchive->open($file))
             throw new \UnexpectedValueException("Unable to open downloaded ZIP file.");
-        }
 
         if ($omitFirstDirectory) {
             $this->extractIgnoringFirstDirectory($zipArchive, $path);
         } else {
-            if (true !== $zipArchive->extractTo($path)) {
+            if (true !== $zipArchive->extractTo($path))
                 throw new \RuntimeException("There was an error extracting the ZIP file. Corrupt file?");
-            }
         }
 
         $zipArchive->close();
@@ -231,38 +218,26 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
      * @throws \Exception
      */
     protected function extractIgnoringFirstDirectory($zipArchive, $path) {
+
         for( $i = 0; $i < $zipArchive->numFiles; $i++ ){
-            $stat = $zipArchive->statIndex( $i );
 
-            $filename = $stat['name'];
+            $stat       = $zipArchive->statIndex($i);
+            $filename   = $stat['name'];
+            $pos        = strpos($filename, '/');
 
-            $pos = strpos($filename, '/');
-            if ($pos !== false) {
-                // The file name, without the the directory
-                $newfilename = substr($filename, $pos+1);
-            } else {
-                $newfilename = $filename;
-            }
+            $newfilename = $pos !== false
+                ? substr($filename, $pos+1) // The file name, without the the directory
+                : $filename;
 
-            if (!$newfilename) {
-                continue;
-            }
+            if (!$newfilename) continue;
 
-            $fp = $zipArchive->getStream($filename);
-            if  (!$fp) {
-                throw new \Exception("Unable to read file $filename from archive.");
-            }
+            if (!$fp = $zipArchive->getStream($filename)) throw new \Exception("Unable to read file $filename from archive.");
 
-            if (!file_exists(dirname($path.$newfilename))) {
-                mkdir(dirname($path.$newfilename), 0777, true);
-            }
+            if (!file_exists(dirname($path . $newfilename))) mkdir(dirname($path . $newfilename), 0777, true);
 
-            // If the current file is actually a directory, let's pass.
-            if (strrpos($newfilename, '/') == strlen($newfilename)-1) {
-                continue;
-            }
+            if (strrpos($newfilename, '/') == strlen($newfilename)-1) continue; // If the current file is actually a directory, let's pass.
 
-            $fpWrite = fopen($path.$newfilename, "wb");
+            $fpWrite = fopen($path . $newfilename, "wb");
 
             while (!feof($fp)) {
                 fwrite($fpWrite, fread($fp, 65536));
@@ -276,8 +251,7 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
      * @param string $file
      * @param string $path
      */
-    protected function extractTgz($file, $path, $omitFirstDirectory)
-    {
+    protected function extractTgz($file, $path, $omitFirstDirectory) {
         if ($omitFirstDirectory) {
             throw new \Exception("Sorry! The omit-first-directory parameter is currently only supported for ZIP files.");
         }
