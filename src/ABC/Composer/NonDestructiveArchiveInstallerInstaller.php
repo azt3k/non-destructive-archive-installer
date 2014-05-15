@@ -38,7 +38,7 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
      * {@inheritDoc}
      */
     public function update(InstalledRepositoryInterface $repo, PackageInterface $initial, PackageInterface $package) {
-        // parent::update($repo, $initial, $package);
+        // parent::update($repo, $initial, $package); // installs package to vendor
         $this->downloadAndExtractFile($package);
     }
 
@@ -46,7 +46,7 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
      * {@inheritDoc}
      */
     public function install(InstalledRepositoryInterface $repo, PackageInterface $package) {
-        // parent::install($repo, $package);
+        // parent::install($repo, $package); // installs package to vendor
         $this->downloadAndExtractFile($package);
     }
 
@@ -165,6 +165,7 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
      */
     public static function setLastDownloadedFileUrl(PackageInterface $package, $url) {
         $packageDir = self::getPackageDir($package);
+        if (!file_exists($package)) mkdir($packageDir, 0777, true);
         file_put_contents($packageDir."download-status.txt", $url);
     }
 
