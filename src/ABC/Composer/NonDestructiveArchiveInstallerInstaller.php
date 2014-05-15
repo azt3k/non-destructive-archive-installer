@@ -47,8 +47,7 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
      * {@inheritDoc}
      */
     public function install(InstalledRepositoryInterface $repo, PackageInterface $package) {
-        parent::install($repo, $package);
-
+        // parent::install($repo, $package);
         $this->downloadAndExtractFile($package);
     }
 
