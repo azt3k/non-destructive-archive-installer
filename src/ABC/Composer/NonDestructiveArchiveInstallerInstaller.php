@@ -38,7 +38,16 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
      * {@inheritDoc}
      */
     public function update(InstalledRepositoryInterface $repo, PackageInterface $initial, PackageInterface $package) {
-        // parent::update($repo, $initial, $package); // installs package to vendor
+
+        if (!$repo->hasPackage($initial))
+            throw new \InvalidArgumentException('Package is not installed: ' . $initial);
+
+        $this->initializeVendorDir();
+        $this->removeBinaries($initial);
+        $repo->removePackage($initial);
+
+        if (!$repo->hasPackage($target)) $repo->addPackage(clone $target);
+
         $this->downloadAndExtractFile($package);
     }
 
@@ -46,7 +55,14 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
      * {@inheritDoc}
      */
     public function install(InstalledRepositoryInterface $repo, PackageInterface $package) {
-        // parent::install($repo, $package); // installs package to vendor
+
+        $this->initializeVendorDir();
+
+        $downloadPath = $this->getInstallPath($package);
+
+        if (!is_readable($downloadPath) && $repo->hasPackage($package)) $this->removeBinaries($package);
+        if (!$repo->hasPackage($package)) $repo->addPackage(clone $package);
+
         $this->downloadAndExtractFile($package);
     }
 
@@ -165,7 +181,7 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
      */
     public static function setLastDownloadedFileUrl(PackageInterface $package, $url) {
         $packageDir = self::getPackageDir($package);
-        if (!file_exists($package)) mkdir($packageDir, 0777, true);
+        if (!file_exists($packageDir)) mkdir($packageDir, 0777, true);
         file_put_contents($packageDir."download-status.txt", $url);
     }
 
