@@ -46,7 +46,7 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
         $this->removeBinaries($initial);
         $repo->removePackage($initial);
 
-        if (!$repo->hasPackage($target)) $repo->addPackage(clone $target);
+        if (!$repo->hasPackage($package)) $repo->addPackage(clone $package);
 
         $this->downloadAndExtractFile($package);
     }
