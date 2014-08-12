@@ -54,6 +54,14 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
     /**
      * {@inheritDoc}
      */
+    public function isInstalled(InstalledRepositoryInterface $repo, PackageInterface $package) {
+        if ($this->alwaysInstall($package)) return false;
+        return parent::isInstalled($repo, $package);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public function install(InstalledRepositoryInterface $repo, PackageInterface $package) {
 
         $this->initializeVendorDir();
@@ -64,6 +72,13 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
         if (!$repo->hasPackage($package)) $repo->addPackage(clone $package);
 
         $this->downloadAndExtractFile($package);
+    }
+
+    protected function alwaysInstall(PackageInterface $package) {
+        $p_extra = $package->getExtra();
+        return isset($p_extra['always-install']) && strtolower($p_extra['always-install']) == "false"
+            ? false
+            : true;
     }
 
     /**
@@ -90,10 +105,6 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
                 ? strtolower($p_extra['omit-first-directory']) == "true"
                 : false;
 
-            $alwaysInstall = isset($p_extra['always-install']) && strtolower($p_extra['always-install']) == "false"
-                ? false
-                : true;
-
             $targetDir = isset($p_extra['target-dir'])
                 ? realpath('./' . trim($p_extra['target-dir'], '/')) . '/'
                 : $this->getInstallPath($package);
@@ -112,7 +123,7 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
             }
 
             // Has archive has been downloaded
-            if (self::getLastDownloadedFileUrl($package) == $url && !$alwaysInstall) return;
+            if (self::getLastDownloadedFileUrl($package) == $url && !$this->alwaysInstall($package)) return;
 
             // SSL Check
             if (!extension_loaded('openssl') && 0 === strpos($url, 'https:'))
