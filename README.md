@@ -11,6 +11,14 @@ What's in this thing Anyway?
 This really only does something very simple which is to manually handle the decompression of manually defined packages so as to not disrupt nested package installs.  This is basically a straight rip of mouf/archive-installer (http://mouf-php.com), the only difference is that it's made to be slightly more flexible in terms of configuration.
 
 
+Notes:
+
+
+`"always-install": "true"` - This bypasses the version look up and does a full install every time useful for deployments where depenedencies are rebuilt each deploy - the default is `true`.
+
+
+`"omit-first-directory": "true"` - This omits the first directory of the zip
+
 
 ### Usage
 
