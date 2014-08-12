@@ -86,9 +86,13 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
             // handle package level config
             // ---------------------------
 
-            $omitFirstDirectory = (isset($p_extra['omit-first-directory']))
+            $omitFirstDirectory = isset($p_extra['omit-first-directory'])
                 ? strtolower($p_extra['omit-first-directory']) == "true"
                 : false;
+
+            $alwaysInstall = isset($p_extra['always-install']) && strtolower($p_extra['always-install']) == "false"
+                ? false
+                : true;
 
             $targetDir = isset($p_extra['target-dir'])
                 ? realpath('./' . trim($p_extra['target-dir'], '/')) . '/'
@@ -108,7 +112,7 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
             }
 
             // Has archive has been downloaded
-            if (self::getLastDownloadedFileUrl($package) == $url) return;
+            if (self::getLastDownloadedFileUrl($package) == $url && !$alwaysInstall) return;
 
             // SSL Check
             if (!extension_loaded('openssl') && 0 === strpos($url, 'https:'))

@@ -33,6 +33,7 @@ This really only does something very simple which is to manually handle the deco
                     "azt3k/non-destructive-archive-installer" : "*"
                 },
                 "extra": {
+                    "always-install": "true",
                     "omit-first-directory": "true"
                 }
             }
