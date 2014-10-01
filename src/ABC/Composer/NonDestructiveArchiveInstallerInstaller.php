@@ -286,7 +286,7 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
 
             // make directory if needed
             if (!file_exists(dirname($path . $newfilename))) {
-                if ($this->debug) $this->io->write("    Creating Directory <info>" . $path . "</info>");
+                if ($this->debug) $this->io->write("    Creating Directory <info>" . $path . $newfilename . "</info>");
                 mkdir(dirname($path . $newfilename), 0777, true);
             }
 
