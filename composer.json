@@ -2,7 +2,7 @@
     "name": "azt3k/non-destructive-archive-installer",
     "description": "A composer installer type that allows you to unpack archives to a specific location in a non destructive way - it is very useful when some packages need to be installed inside another package folder - e.g. drupal and modules",
     "type": "composer-installer",
-    "license": "MIT",    
+    "license": "MIT",
     "authors": [
         {
             "name": "Aaron Latham-Ilari",

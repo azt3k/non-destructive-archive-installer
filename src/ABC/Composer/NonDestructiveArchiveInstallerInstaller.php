@@ -21,6 +21,7 @@ use Composer\Installer\LibraryInstaller;
 class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
 
     protected $rfs;
+    protected $debug = false;
 
     /**
      * Initializes library installer.
@@ -42,6 +43,10 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
         if (!$repo->hasPackage($initial))
             throw new \InvalidArgumentException('Package is not installed: ' . $initial);
 
+        // Debug
+        $this->debug = $this->isDebug($package);
+
+        // Composer stuff
         $this->initializeVendorDir();
         $this->removeBinaries($initial);
         $repo->removePackage($initial);
@@ -64,6 +69,10 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
      */
     public function install(InstalledRepositoryInterface $repo, PackageInterface $package) {
 
+        // Debug
+        $this->debug = $this->isDebug($package);
+
+        // Composer stuff
         $this->initializeVendorDir();
 
         $downloadPath = $this->getInstallPath($package);
@@ -79,6 +88,13 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
         return isset($p_extra['always-install']) && strtolower($p_extra['always-install']) == "false"
             ? false
             : true;
+    }
+
+    protected function isDebug(PackageInterface $package) {
+        $p_extra = $package->getExtra();
+        return isset($p_extra['debug']) && strtolower($p_extra['debug']) == "true"
+            ? true
+            : false;
     }
 
     /**
@@ -134,7 +150,7 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
             $extension = strtolower(pathinfo(parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION));
 
             // Download
-            $this->io->write("    - Downloading <info>" . $fileName . "</info> from <info>".$url."</info>");
+            $this->io->write("  - Downloading <info>" . $fileName . "</info> from <info>".$url."</info>");
             $this->rfs->copy(parse_url($url, PHP_URL_HOST), $url, $fileName);
 
             // Check
@@ -144,10 +160,10 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
 
             // Extract using ZIP downloader
             if ($extension == 'zip') {
-                $this->io->write("    - Extracting <info>" . $fileName . "</info> to <info>" . $targetDir . "</info>");
+                $this->io->write("    Extracting <info>" . $fileName . "</info> to <info>" . $targetDir . "</info>\n");
                 $this->extractZip($fileName, $targetDir, $omitFirstDirectory);
             } elseif ($extension == 'tar' || $extension == 'gz' || $extension == 'bz2') {
-                $this->io->write("    - Extracting <info>" . $fileName . "</info> to <info>" . $targetDir . "</info>");
+                $this->io->write("    Extracting <info>" . $fileName . "</info> to <info>" . $targetDir . "</info>\n");
                 $this->extractTgz($fileName, $targetDir, $omitFirstDirectory);
             }
 
@@ -251,24 +267,35 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
 
         for( $i = 0; $i < $zipArchive->numFiles; $i++ ){
 
+            // vars
             $stat       = $zipArchive->statIndex($i);
             $filename   = $stat['name'];
             $pos        = strpos($filename, '/');
 
+            // The file name, without the the directory
             $newfilename = $pos !== false
-                ? substr($filename, $pos+1) // The file name, without the the directory
+                ? substr($filename, $pos+1)
                 : $filename;
 
+            // Skip to next file if this file is null
             if (!$newfilename) continue;
 
-            if (!$fp = $zipArchive->getStream($filename)) throw new \Exception("Unable to read file $filename from archive.");
+            // Can we read from the Zip?
+            if (!$fp = $zipArchive->getStream($filename))
+                throw new \Exception("Unable to read file $filename from archive.");
 
-            if (!file_exists(dirname($path . $newfilename))) mkdir(dirname($path . $newfilename), 0777, true);
+            // make directory if needed
+            if (!file_exists(dirname($path . $newfilename))) {
+                if ($this->debug) $this->io->write("    Creating Directory <info>" . $path . "</info>");
+                mkdir(dirname($path . $newfilename), 0777, true);
+            }
 
-            if (strrpos($newfilename, '/') == strlen($newfilename)-1) continue; // If the current file is actually a directory, let's pass.
+            // If the current file is actually a directory, let's pass.
+            if (strrpos($newfilename, '/') == strlen($newfilename)-1) continue;
 
+            // write the file
+            if ($this->debug) $this->io->write("    Extracting File <info>" . $path . $newfilename . "</info>");
             $fpWrite = fopen($path . $newfilename, "wb");
-
             while (!feof($fp)) {
                 fwrite($fpWrite, fread($fp, 65536));
             }

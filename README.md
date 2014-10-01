@@ -42,7 +42,8 @@ Notes:
                 },
                 "extra": {
                     "always-install": "true",
-                    "omit-first-directory": "true"
+                    "omit-first-directory": "true",
+                    "debug": "false"
                 }
             }
         }
