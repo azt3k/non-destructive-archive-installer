@@ -139,7 +139,7 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
             }
 
             // Has archive has been downloaded
-            if (self::getLastDownloadedFileUrl($package) == $url && !$this->alwaysInstall($package)) return;
+            if (self::getLastDownloadedFileUrl($package, $this->vendorDir) == $url && !$this->alwaysInstall($package)) return;
 
             // SSL Check
             if (!extension_loaded('openssl') && 0 === strpos($url, 'https:'))
@@ -171,7 +171,7 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
             unlink($fileName);
 
             // Save last download URL
-            self::setLastDownloadedFileUrl($package, $url);
+            self::setLastDownloadedFileUrl($package, $this->vendorDir, $url);
         }
     }
 
@@ -195,8 +195,8 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
      * @param PackageInterface $package
      * @return string
      */
-    public static function getLastDownloadedFileUrl(PackageInterface $package) {
-        $packageDir = self::getPackageDir($package);
+    public static function getLastDownloadedFileUrl(PackageInterface $package, $vendorDir) {
+        $packageDir = self::getPackageDir($package, $vendorDir);
         if (file_exists($packageDir."download-status.txt")) {
             return file_get_contents($packageDir."download-status.txt");
         } else {
@@ -210,8 +210,8 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
      * @param PackageInterface $package
      * @param unknown $url
      */
-    public static function setLastDownloadedFileUrl(PackageInterface $package, $url) {
-        $packageDir = self::getPackageDir($package);
+    public static function setLastDownloadedFileUrl(PackageInterface $package, $vendorDir, $url) {
+        $packageDir = self::getPackageDir($package, $vendorDir);
         if (!file_exists($packageDir)) mkdir($packageDir, 0777, true);
         file_put_contents($packageDir."download-status.txt", $url);
     }
@@ -222,8 +222,8 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
      * @param PackageInterface $package
      * @return string
      */
-    public static function getPackageDir(PackageInterface $package) {
-        $dir = realpath(__DIR__ . "/../../../../../") . $package->getName();
+    public static function getPackageDir(PackageInterface $package, $vendorDir) {
+        $dir = realpath($vendorDir) . $package->getName();
         return $dir . '/';
     }
 
