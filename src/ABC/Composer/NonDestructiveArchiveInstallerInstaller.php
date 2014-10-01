@@ -223,7 +223,8 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
      * @return string
      */
     public static function getPackageDir(PackageInterface $package) {
-        return __DIR__."/../../../../../" . $package->getName() . "/";
+        $dir = realpath(__DIR__ . "/../../../../../") . $package->getName();
+        return $dir . '/';
     }
 
     /**
