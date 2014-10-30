@@ -245,7 +245,7 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
             throw new \UnexpectedValueException("Unable to open downloaded ZIP file.");
 
         if ($omitFirstDirectory) {
-            $this->extractIgnoringFirstDirectory($zipArchive, $path);
+            $this->extractZipIgnoringFirstDirectory($zipArchive, $path);
         } else {
             if (true !== $zipArchive->extractTo($path))
                 throw new \RuntimeException("There was an error extracting the ZIP file. Corrupt file?");
@@ -263,7 +263,7 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
      * @param unknown $path
      * @throws \Exception
      */
-    protected function extractIgnoringFirstDirectory($zipArchive, $path) {
+    protected function extractZipIgnoringFirstDirectory($zipArchive, $path) {
 
         for( $i = 0; $i < $zipArchive->numFiles; $i++ ){
 
@@ -309,11 +309,85 @@ class NonDestructiveArchiveInstallerInstaller extends LibraryInstaller {
      * @param string $path
      */
     protected function extractTgz($file, $path, $omitFirstDirectory) {
-        if ($omitFirstDirectory) {
-            throw new \Exception("Sorry! The omit-first-directory parameter is currently only supported for ZIP files.");
-        }
-        // Can throw an UnexpectedValueException
+
         $archive = new \PharData($file);
-        $archive->extractTo($path, null, true);
+
+        if ($omitFirstDirectory) {
+            $this->extractTgzIgnoringFirstDirectory($archive, $path);
+        } else {
+            $archive->extractTo($path, null, true);
+        }
     }
+
+    /**
+     * Extract the ZIP file, but ignores the first directory of the ZIP file.
+     * This is useful if you want to extract a ZIP file that contains all the content stored
+     * in one directory and that you don't want this directory.
+     *
+     * @param unknown $zipArchive
+     * @param unknown $path
+     * @throws \Exception
+     */
+    protected function extractTgzIgnoringFirstDirectory($tgzArchive, $path) {
+
+        // tmp path
+        $tmp_path = sys_get_temp_dir() . '/non-destructive-archive-installer/' . uniqid();
+
+        // extract to the tmp path
+        $tgzArchive->extractTo($tmp_path);
+
+        // get all the files
+        $files = $this->directoryToArray($tmp_path, true);
+
+        foreach ($files as $file){
+
+            // vars
+            $filename = str_replace($tmp_path . '/', '', $file);
+            $pos      = strpos($filename, '/');
+
+            // The file name, without the the directory
+            $newfilename = $pos !== false
+                ? substr($filename, $pos+1)
+                : $filename;
+
+            // Skip to next file if this file is null
+            if (!$newfilename) continue;
+
+            // make directory if needed
+            if (!file_exists(dirname($path . $newfilename))) {
+                if ($this->debug) $this->io->write("    Creating Directory <info>" . dirname($path . $newfilename). "</info>");
+                mkdir(dirname($path . $newfilename), 0777, true);
+            }
+
+            // If the current file is actually a directory, let's pass.
+            if (is_dir($file)) continue;
+
+            // write the file
+            if ($this->debug) $this->io->write("    Extracting File <info>" . $path . $newfilename . "</info>");
+            rename($file, $path . $newfilename);
+        }
+    }
+
+    protected function directoryToArray($directory, $recursive) {
+        $array_items = array();
+        if ($handle = opendir($directory)) {
+            while (false !== ($file = readdir($handle))) {
+                if ($file != "." && $file != "..") {
+                    if (is_dir($directory. "/" . $file)) {
+                        if($recursive) {
+                            $array_items = array_merge($array_items, $this->directoryToArray($directory. "/" . $file, $recursive));
+                        }
+                        $file = $directory . "/" . $file;
+                        $array_items[] = preg_replace("/\/\//si", "/", $file);
+                    } else {
+                        $file = $directory . "/" . $file;
+                        $array_items[] = preg_replace("/\/\//si", "/", $file);
+                    }
+                }
+            }
+            closedir($handle);
+        }
+        return $array_items;
+    }
+
 }
